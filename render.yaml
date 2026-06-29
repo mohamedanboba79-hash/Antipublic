@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: enc
+    runtime: python
+    repo: https://github.com/your-username/your-repo
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: bash start.sh
+    envVars:
+      - key: BOT_TOKEN
+        value: 8823800504:AAGrWZWcIYi-j_rXRsAWvf7EZcxsRW8jN0g
+      - key: WEBAPP_URL
+        value: https://enc.onrender.com
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.10.12
+    plan: free
+    region: frankfurt
+    autoDeploy: true
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - "*.py"
+        - "*.html"
+        - "*.txt"
+        - "*.sh"
+        - ".env"
