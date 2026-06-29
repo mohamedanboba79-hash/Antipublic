@@ -10,7 +10,7 @@ import threading
 import time
 
 # ============ إعدادات البوت ============
-BOT_TOKEN = os.environ.get('BOT_TOKEN', '8937588348:AAFCpn3onbonlU_MCt6OqQxitFD-AA3kFS8')
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8823800504:AAGrWZWcIYi-j_rXRsAWvf7EZcxsRW8jN0g'
 WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://antipublic.onrender.com')
 ADMIN_IDS = [int(x) for x in os.environ.get('ADMIN_IDS', '1867486900').split(',')]
 
