@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Filter Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .filter-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: border-color 0.3s;
+        }
+        .filter-group.active {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        .filter-group label {
+            display: block;
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            background: white;
+        }
+        .filter-group input:focus, .filter-group select:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        .filter-group input[type="checkbox"] {
+            width: auto;
+            margin-left: 8px;
+        }
+        .filter-group .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            box-shadow: 0 5px 20px rgba(108, 117, 125, 0.4);
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+        }
+        .btn-primary {
+            background: #007bff;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 5px 20px rgba(0, 123, 255, 0.4);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            background: #f8f9fa;
+            padding: 12px 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+        .stat-box .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-box .label {
+            color: #666;
+            font-size: 12px;
+        }
+        .stat-box.highlight {
+            border-color: #28a745;
+            background: #f0fff0;
+        }
+        .stat-box.highlight .number {
+            color: #28a745;
+        }
+        .cards-display {
+            background: #1a1a2e;
+            color: #00ff41;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .cards-display::-webkit-scrollbar {
+            width: 8px;
+        }
+        .cards-display::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        .cards-display::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+        .progress {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .progress .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+        }
+        .toast.success {
+            background: #28a745;
+        }
+        .toast.error {
+            background: #dc3545;
+        }
+        .toast.info {
+            background: #17a2b8;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+            background: #fafafa;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f5f5ff;
+        }
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        .upload-area label {
+            cursor: pointer;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .upload-area .icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .filter-summary {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+        .filter-summary .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            margin: 3px 5px;
+            font-size: 12px;
+        }
+        .filter-summary .tag .remove {
+            cursor: pointer;
+            margin-left: 5px;
+        }
+        .send-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            border: 2px solid #dee2e6;
+        }
+        .send-section .btn-send {
+            padding: 15px 50px;
+            font-size: 20px;
+            border-radius: 50px;
+        }
+        .send-section .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .file-info {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            .actions {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+            }
+            .stats {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .stat-box {
+                min-width: 45%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 واجهة تصفية البطاقات</h1>
+        <p class="subtitle">اختر الفلاتر المناسبة ثم اضغط "إرسال للبوت"</p>
+        
+        <!-- منطقة رفع الملف -->
+        <div class="upload-area" id="uploadArea">
+            <span class="icon">📁</span>
+            <p>اسحب الملف هنا أو</p>
+            <label for="fileInput">📤 اختر ملف</label>
+            <input type="file" id="fileInput" accept=".txt,.csv">
+            <p style="margin-top:10px;color:#888;font-size:12px;">يدعم TXT, CSV</p>
+        </div>
+        
+        <div class="file-info" id="fileInfo">
+            ✅ تم تحميل: <span id="fileName">file.txt</span> - <span id="fileCount">0</span> بطاقة
+        </div>
+        
+        <!-- الفلاتر -->
+        <div class="filters-grid">
+            <div class="filter-group" id="filterBin">
+                <label>🔢 BIN</label>
+                <input type="text" id="binFilter" placeholder="أول 6 أرقام (مثال: 440393)">
+            </div>
+            
+            <div class="filter-group" id="filterCountry">
+                <label>🌍 الدولة</label>
+                <select id="countryFilter">
+                    <option value="">جميع الدول</option>
+                    <option value="United States">🇺🇸 الولايات المتحدة</option>
+                    <option value="United Kingdom">🇬🇧 بريطانيا</option>
+                    <option value="Germany">🇩🇪 ألمانيا</option>
+                    <option value="France">🇫🇷 فرنسا</option>
+                    <option value="Italy">🇮🇹 إيطاليا</option>
+                    <option value="Spain">🇪🇸 إسبانيا</option>
+                    <option value="Canada">🇨🇦 كندا</option>
+                    <option value="Australia">🇦🇺 أستراليا</option>
+                    <option value="Brazil">🇧🇷 البرازيل</option>
+                    <option value="India">🇮🇳 الهند</option>
+                    <option value="China">🇨🇳 الصين</option>
+                    <option value="Japan">🇯🇵 اليابان</option>
+                    <option value="Saudi Arabia">🇸🇦 السعودية</option>
+                    <option value="UAE">🇦🇪 الإمارات</option>
+                    <option value="Egypt">🇪🇬 مصر</option>
+                    <option value="Algeria">🇩🇿 الجزائر</option>
+                    <option value="Morocco">🇲🇦 المغرب</option>
+                    <option value="Tunisia">🇹🇳 تونس</option>
+                    <option value="Jordan">🇯🇴 الأردن</option>
+                    <option value="Lebanon">🇱🇧 لبنان</option>
+                    <option value="Kuwait">🇰🇼 الكويت</option>
+                    <option value="Qatar">🇶🇦 قطر</option>
+                    <option value="Oman">🇴🇲 عمان</option>
+                    <option value="Bahrain">🇧🇭 البحرين</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" id="filterBank">
+                <label>🏦 البنك</label>
+                <input type="text" id="bankFilter" placeholder="اسم البنك (مثال: FIRST CITIZENS)">
+            </div>
+            
+            <div class="filter-group" id="filterType">
+                <label>💳 النوع</label>
+                <select id="typeFilter">
+                    <option value="">الكل</option>
+                    <option value="Credit">💳 Credit</option>
+                    <option value="Debit">💳 Debit</option>
+                    <option value="Prepaid">💳 Prepaid</option>
+                    <option value="Deferred_Debit">💳 Deferred Debit</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" id="filterLevel">
+                <label>📊 المستوى</label>
+                <select id="levelFilter">
+                    <option value="">الكل</option>
+                    <option value="PLATINUM">⭐ بلاتينيوم</option>
+                    <option value="WORLD ELITE">⭐ وورلد إيليت</option>
+                    <option value="PREPAID CORPORATE">⭐ بروبيد كوربوريت</option>
+                    <option value="PREPAID ELECTRON">⭐ بروبيد إلكترون</option>
+                    <option value="PREPAID PAYROLL">⭐ بروبيد بايرول</option>
+                    <option value="PREPAID TRAVEL">⭐ بروبيد ترافل</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" id="filterOptions">
+                <label>⚙️ خيارات إضافية</label>
+                <div class="checkbox-label">
+                    <input type="checkbox" id="validOnlyFilter">
+                    <label for="validOnlyFilter">✅ صالحة فقط</label>
+                </div>
+                <div class="checkbox-label">
+                    <input type="checkbox" id="luhnFilter">
+                    <label for="luhnFilter">🔢 Luhn صحيح</label>
+                </div>
+                <div class="checkbox-label">
+                    <input type="checkbox" id="withBrandFilter">
+                    <label for="withBrandFilter">🏷️ إضافة معلومات البطاقة</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ملخص الفلاتر -->
+        <div class="filter-summary" id="filterSummary">
+            <strong>🔍 الفلاتر المطبقة:</strong>
+            <div id="filterTags"></div>
+        </div>
+        
+        <!-- الأزرار -->
+        <div class="actions">
+            <button class="btn" onclick="applyFilters()">🔍 تطبيق الفلاتر</button>
+            <button class="btn btn-secondary" onclick="resetFilters()">🔄 إعادة تعيين</button>
+            <button class="btn btn-success" onclick="exportCards()">📥 تصدير</button>
+            <button class="btn btn-danger" onclick="clearAll()">🗑️ مسح الكل</button>
+        </div>
+        
+        <!-- الإحصائيات -->
+        <div class="stats">
+            <div class="stat-box">
+                <div class="number" id="totalCards">0</div>
+                <div class="label">📊 إجمالي البطاقات</div>
+            </div>
+            <div class="stat-box highlight">
+                <div class="number" id="filteredCards">0</div>
+                <div class="label">✅ البطاقات المصفاة</div>
+            </div>
+            <div class="stat-box">
+                <div class="number" id="validCount">0</div>
+                <div class="label">⏰ صالحة</div>
+            </div>
+            <div class="stat-box">
+                <div class="number" id="countryCount">0</div>
+                <div class="label">🌍 حسب الدولة</div>
+            </div>
+            <div class="stat-box">
+                <div class="number" id="typeCount">0</div>
+                <div class="label">💳 حسب النوع</div>
+            </div>
+        </div>
+        
+        <div class="progress" id="progress">
+            <div class="spinner"></div>
+            <p style="margin-top:10px;">⏳ جاري التصفية...</p>
+        </div>
+        
+        <!-- عرض البطاقات -->
+        <div class="cards-display" id="cardsDisplay">
+            📋 انتظر حتى يتم تحميل البطاقات...
+        </div>
+        
+        <!-- قسم الإرسال للبوت -->
+        <div class="send-section">
+            <h3>📤 إرسال النتائج للبوت</h3>
+            <p style="color: #666; margin: 10px 0;">
+                بعد تطبيق الفلاتر، اضغط الزر لإرسال البطاقات المصفاة مباشرة للبوت
+            </p>
+            <button class="btn btn-primary btn-send" id="sendToBotBtn" onclick="sendToBot()" disabled>
+                📤 إرسال للبوت
+            </button>
+            <p style="color: #888; font-size: 12px; margin-top: 10px;">
+                سيتم إرسال الملف مع ملخص الفلاتر المستخدمة
+            </p>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============ المتغيرات ============
+        let cardsData = [];
+        let filteredData = [];
+        let originalCards = [];
+        let userId = '';
+        let filtersApplied = {};
+        
+        // ============ الحصول على User ID ============
+        function getUserId() {
+            const params = new URLSearchParams(window.location.search);
+            userId = params.get('user_id') || '';
+            if (!userId) {
+                // محاولة الحصول من Telegram WebApp
+                if (window.Telegram && window.Telegram.WebApp) {
+                    userId = window.Telegram.WebApp.initDataUnsafe?.user?.id || '';
+                }
+            }
+            return userId;
+        }
+        
+        // ============ استقبال البيانات من البوت ============
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'cards_data') {
+                originalCards = event.data.cards.split('\n').filter(c => c.trim());
+                cardsData = [...originalCards];
+                filteredData = [...cardsData];
+                updateDisplay();
+                showToast('✅ تم استلام ' + cardsData.length + ' بطاقة', 'success');
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('fileCount').textContent = cardsData.length;
+                document.getElementById('fileName').textContent = 'من البوت';
+            }
+        });
+        
+        // ============ رفع الملف ============
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const content = event.target.result;
+                originalCards = content.split('\n').filter(c => c.trim());
+                cardsData = [...originalCards];
+                filteredData = [...cardsData];
+                updateDisplay();
+                showToast('✅ تم تحميل ' + cardsData.length + ' بطاقة من الملف', 'success');
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('fileCount').textContent = cardsData.length;
+                document.getElementById('fileName').textContent = file.name;
+            };
+            reader.readAsText(file);
+        });
+        
+        // ============ السحب والإفلات ============
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const content = event.target.result;
+                    originalCards = content.split('\n').filter(c => c.trim());
+                    cardsData = [...originalCards];
+                    filteredData = [...cardsData];
+                    updateDisplay();
+                    showToast('✅ تم تحميل ' + cardsData.length + ' بطاقة', 'success');
+                    document.getElementById('fileInfo').style.display = 'block';
+                    document.getElementById('fileCount').textContent = cardsData.length;
+                    document.getElementById('fileName').textContent = file.name;
+                };
+                reader.readAsText(file);
+            }
+        });
+        
+        // ============ دوال التصفية ============
+        function applyFilters() {
+            if (cardsData.length === 0) {
+                showToast('❌ لا توجد بطاقات للتصفية. ارفع ملف أولاً.', 'error');
+                return;
+            }
+            
+            const bin = document.getElementById('binFilter').value.trim();
+            const country = document.getElementById('countryFilter').value;
+            const bank = document.getElementById('bankFilter').value.trim();
+            const type = document.getElementById('typeFilter').value;
+            const level = document.getElementById('levelFilter').value;
+            const validOnly = document.getElementById('validOnlyFilter').checked;
+            const luhn = document.getElementById('luhnFilter').checked;
+            
+            // جمع الفلاتر
+            filtersApplied = {};
+            if (country) filtersApplied.country = country;
+            if (bank) filtersApplied.bank = bank;
+            if (type) filtersApplied.type = type;
+            if (level) filtersApplied.level = level;
+            if (bin) filtersApplied.bin = bin;
+            if (validOnly) filtersApplied.valid_only = true;
+            if (luhn) filtersApplied.luhn = true;
+            
+            // عرض ملخص الفلاتر
+            updateFilterSummary();
+            
+            document.getElementById('progress').style.display = 'block';
+            document.getElementById('sendToBotBtn').disabled = true;
+            
+            // إرسال للـ API
+            fetch('/filter', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cards: cardsData.join('\n'),
+                    filters: filtersApplied,
+                    user_id: userId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                filteredData = data.filtered ? data.filtered.split('\n').filter(c => c.trim()) : [];
+                updateDisplay();
+                document.getElementById('progress').style.display = 'none';
+                document.getElementById('sendToBotBtn').disabled = false;
+                showToast('✅ تم التصفية! ' + filteredData.length + ' بطاقة', 'success');
+                
+                // تحديث إحصائيات إضافية
+                if (data.stats) {
+                    document.getElementById('countryCount').textContent = data.stats.by_country || 0;
+                    document.getElementById('typeCount').textContent = data.stats.by_type || 0;
+                }
+            })
+            .catch(error => {
+                document.getElementById('progress').style.display = 'none';
+                showToast('❌ خطأ في التصفية: ' + error.message, 'error');
+            });
+        }
+        
+        function resetFilters() {
+            document.getElementById('binFilter').value = '';
+            document.getElementById('countryFilter').value = '';
+            document.getElementById('bankFilter').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('levelFilter').value = '';
+            document.getElementById('validOnlyFilter').checked = false;
+            document.getElementById('luhnFilter').checked = false;
+            document.getElementById('withBrandFilter').checked = false;
+            
+            filteredData = [...cardsData];
+            filtersApplied = {};
+            updateFilterSummary();
+            updateDisplay();
+            document.getElementById('sendToBotBtn').disabled = true;
+            showToast('🔄 تم إعادة تعيين الفلاتر', 'info');
+        }
+        
+        function clearAll() {
+            cardsData = [];
+            filteredData = [];
+            originalCards = [];
+            filtersApplied = {};
+            document.getElementById('fileInfo').style.display = 'none';
+            updateDisplay();
+            document.getElementById('sendToBotBtn').disabled = true;
+            showToast('🗑️ تم مسح جميع البطاقات', 'info');
+        }
+        
+        function exportCards() {
+            if (filteredData.length === 0) {
+                showToast('❌ لا توجد بطاقات للتصدير', 'error');
+                return;
+            }
+            
+            fetch('/export', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cards: filteredData.join('\n'),
+                    filename: `filtered_cards_${Date.now()}.txt`
+                })
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `filtered_cards_${Date.now()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('📥 تم التصدير! ' + filteredData.length + ' بطاقة', 'success');
+            })
+            .catch(error => {
+                showToast('❌ خطأ في التصدير: ' + error.message, 'error');
+            });
+        }
+        
+        // ============ إرسال للبوت ============
+        function sendToBot() {
+            if (filteredData.length === 0) {
+                showToast('❌ لا توجد بطاقات للإرسال. قم بتطبيق الفلاتر أولاً.', 'error');
+                return;
+            }
+            
+            const userId = getUserId();
+            if (!userId) {
+                showToast('❌ لم يتم العثور على معرف المستخدم. تأكد من فتح الويب اب من البوت.', 'error');
+                return;
+            }
+            
+            document.getElementById('sendToBotBtn').disabled = true;
+            document.getElementById('sendToBotBtn').textContent = '⏳ جاري الإرسال...';
+            
+            fetch('/send_to_bot', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    cards: filteredData.join('\n'),
+                    user_id: userId,
+                    filters: filtersApplied
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showToast('✅ تم إرسال الملف للبوت بنجاح!', 'success');
+                    document.getElementById('sendToBotBtn').textContent = '✅ تم الإرسال';
+                } else {
+                    showToast('❌ فشل الإرسال: ' + (data.error || 'خطأ غير معروف'), 'error');
+                    document.getElementById('sendToBotBtn').textContent = '📤 إرسال للبوت';
+                    document.getElementById('sendToBotBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                showToast('❌ خطأ في الإرسال: ' + error.message, 'error');
+                document.getElementById('sendToBotBtn').textContent = '📤 إرسال للبوت';
+                document.getElementById('sendToBotBtn').disabled = false;
+            });
+        }
+        
+        // ============ دوال مساعدة ============
+        function updateDisplay() {
+            document.getElementById('totalCards').textContent = cardsData.length;
+            document.getElementById('filteredCards').textContent = filteredData.length;
+            document.getElementById('cardsDisplay').textContent = filteredData.length > 0 ? 
+                filteredData.join('\n') : 
+                '📋 لا توجد بطاقات';
+            
+            // حساب البطاقات الصالحة
+            let valid = 0;
+            filteredData.forEach(card => {
+                const parts = card.split('|');
+                if (parts.length >= 3) {
+                    if (isValidExpiry(parts[1].trim(), parts[2].trim())) {
+                        valid++;
+                    }
+                }
+            });
+            document.getElementById('validCount').textContent = valid;
+            
+            // تمكين/تعطيل زر الإرسال
+            const sendBtn = document.getElementById('sendToBotBtn');
+            if (filteredData.length > 0 && getUserId()) {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '📤 إرسال للبوت';
+            } else {
+                sendBtn.disabled = true;
+                if (!getUserId()) {
+                    sendBtn.textContent = '⚠️ افتح من البوت';
+                } else {
+                    sendBtn.textContent = '📤 إرسال للبوت';
+                }
+            }
+        }
+        
+        function updateFilterSummary() {
+            const summary = document.getElementById('filterSummary');
+            const tags = document.getElementById('filterTags');
+            
+            const filterNames = {
+                country: '🌍 الدولة',
+                bank: '🏦 البنك',
+                type: '💳 النوع',
+                level: '📊 المستوى',
+                bin: '🔢 BIN',
+                valid_only: '✅ صالحة فقط',
+                luhn: '🔢 Luhn'
+            };
+            
+            const activeFilters = Object.keys(filtersApplied).filter(k => filtersApplied[k]);
+            
+            if (activeFilters.length === 0) {
+                summary.style.display = 'none';
+                return;
+            }
+            
+            summary.style.display = 'block';
+            tags.innerHTML = activeFilters.map(key => {
+                const name = filterNames[key] || key;
+                const value = filtersApplied[key];
+                return `<span class="tag">${name}: ${value}</span>`;
+            }).join(' ');
+        }
+        
+        function isValidExpiry(month, year) {
+            try {
+                month = month.trim();
+                year = year.trim();
+                if (year.length === 2) year = '20' + year;
+                const monthInt = parseInt(month);
+                const yearInt = parseInt(year);
+                if (monthInt < 1 || monthInt > 12) return false;
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+                if (yearInt < currentYear) return false;
+                if (yearInt === currentYear && monthInt < currentMonth) return false;
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        
+        // ============ Toast Notifications ============
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.style.display = 'block';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
+        
+        // ============ تحميل أولي ============
+        getUserId();
+        
+        // إظهار رسالة إذا لم يتم العثور على User ID
+        if (!userId) {
+            showToast('⚠️ يرجى فتح الويب اب من داخل البوت', 'info');
+        }
+        
+        console.log('🔍 Web App is ready!');
+        console.log('👤 User ID:', userId);
+    </script>
+</body>
+</html>
