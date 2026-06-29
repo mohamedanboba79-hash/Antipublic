@@ -775,5 +775,22 @@ def main():
     print(f"📱 WebApp URL: {WEBAPP_URL}")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+def main():
+    if not BOT_TOKEN or BOT_TOKEN == 'YOUR_BOT_TOKEN_HERE':
+        print("❌ BOT_TOKEN not set!")
+        return
+    
+    application = Application.builder().token(BOT_TOKEN).build()
+    
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(button_handler))
+    application.add_handler(MessageHandler(filters.Document.ALL, handle_file))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    application.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, webapp_data_handler))
+    
+    print(f"🚀 Bot is starting...")
+    print(f"📱 WebApp URL: {WEBAPP_URL}")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
 if __name__ == '__main__':
     main()
