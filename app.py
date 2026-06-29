@@ -4,6 +4,8 @@ import json
 import io
 from datetime import datetime
 import requests
+import threading
+import time
 
 # ============ استيراد bin_info ============
 from bin_info import (
@@ -17,48 +19,51 @@ app = Flask(__name__)
 
 # ============ إعدادات ============
 BOT_TOKEN = "8823800504:AAGrWZWcIYi-j_rXRsAWvf7EZcxsRW8jN0g"
+WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://antipublic.onrender.com')
+
+# ============ تشغيل البوت ============
+def run_bot():
+    try:
+        import bot
+        bot.BOT_TOKEN = BOT_TOKEN
+        bot.WEBAPP_URL = WEBAPP_URL
+        bot.main()
+    except Exception as e:
+        print(f"❌ Bot error: {e}")
+
+print("🚀 Starting bot...")
+bot_thread = threading.Thread(target=run_bot, daemon=True)
+bot_thread.start()
+time.sleep(2)
+print("✅ Bot started!")
 
 # ============ Routes ============
-
 @app.route('/')
 def index():
-    """الصفحة الرئيسية"""
     return render_template('index.html')
 
 @app.route('/extract_info', methods=['POST'])
 def extract_info():
-    """استخراج كل المعلومات من البطاقات"""
     data = request.json
     cards = data.get('cards', '').split('\n')
-    
     if not cards:
         return jsonify({'error': 'No cards provided'}), 400
-    
-    # استخراج المعلومات
     result = extract_all_info_from_cards(cards)
-    
     return jsonify(result)
 
 @app.route('/filter', methods=['POST'])
 def filter_cards():
-    """تصفية البطاقات حسب المعايير"""
     data = request.json
     cards = data.get('cards', '').split('\n')
     filters = data.get('filters', {})
-    
     if not cards:
         return jsonify({'error': 'No cards provided'}), 400
-    
-    # تصفية البطاقات
     filtered = filter_cards_by_criteria(cards, filters)
-    
-    # إحصائيات إضافية
     stats = {
         'total': len(cards),
         'filtered': len(filtered),
         'filters_applied': filters
     }
-    
     return jsonify({
         'filtered': '\n'.join(filtered),
         'stats': stats,
@@ -67,13 +72,10 @@ def filter_cards():
 
 @app.route('/bin_info', methods=['POST'])
 def bin_info():
-    """الحصول على معلومات BIN واحد"""
     data = request.json
     bin_number = data.get('bin', '')[:6]
-    
     if not bin_number:
         return jsonify({'error': 'No BIN provided'}), 400
-    
     info = get_bin_info(bin_number)
     if info:
         return jsonify(info)
@@ -82,19 +84,15 @@ def bin_info():
 
 @app.route('/bulk_bin_info', methods=['POST'])
 def bulk_bin_info():
-    """الحصول على معلومات مجموعة BINs"""
     data = request.json
     bins = data.get('bins', [])
-    
     if not bins:
         return jsonify({'error': 'No BINs provided'}), 400
-    
     results = get_bulk_bin_info(bins)
     return jsonify(results)
 
 @app.route('/send_to_bot', methods=['POST'])
 def send_to_bot():
-    """إرسال البطاقات المصفاة للبوت"""
     data = request.json
     cards = data.get('cards', '')
     user_id = data.get('user_id', '')
@@ -151,7 +149,6 @@ def send_to_bot():
 
 @app.route('/export', methods=['POST'])
 def export_cards():
-    """تصدير البطاقات كملف"""
     data = request.json
     cards = data.get('cards', '')
     filename = data.get('filename', f'cards_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt')
